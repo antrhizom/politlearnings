@@ -1,1 +1,269 @@
 
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktiver Lernpfad: Gesetzgebung in der Schweiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 2.5rem;
+            padding-left: 2.5rem;
+            border-left: 2px solid #e5e7eb;
+            transition: opacity 0.5s ease;
+        }
+        .timeline-item:last-child {
+            border-left: 2px solid transparent;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -0.7rem;
+            top: 0;
+            height: 1.25rem;
+            width: 1.25rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            background-color: #d1d5db; /* Default locked color */
+        }
+        .timeline-item.unlocked .timeline-dot {
+            background-color: #D9182B; /* Swiss Red */
+        }
+        .timeline-item.completed .timeline-dot {
+            background-color: #10b981; /* Emerald */
+        }
+        .timeline-item.active .timeline-dot {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 4px rgba(217, 24, 43, 0.3);
+        }
+        .timeline-item.locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.7s ease-in-out;
+        }
+        .details.open {
+            max-height: 800px; /* Increased for quiz */
+        }
+        .quiz-option:hover {
+            background-color: #f3f4f6;
+        }
+        .feedback {
+            display: none;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+        }
+        .feedback.correct {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .check-btn {
+            transition: background-color 0.2s;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto px-4 py-8 md:py-12">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Lernpfad: Der Weg eines Bundesgesetzes</h1>
+            <p class="mt-2 text-lg text-gray-600">Absolvieren Sie die Schritte, um den Gesetzgebungsprozess in der Schweiz zu verstehen.</p>
+        </header>
+
+        <!-- Timeline -->
+        <div id="timeline" class="max-w-3xl mx-auto">
+            <!-- Step 1: Anstoss & Vorentwurf -->
+            <div id="step-1" class="timeline-item unlocked" data-step="1">
+                <div class="timeline-dot text-white">1</div>
+                <h3 class="text-xl font-semibold text-gray-800">Input: Anstoss und Vorentwurf</h3>
+                <div id="details-1" class="details">
+                    <p class="mt-2 text-gray-600">Ein Gesetzgebungsverfahren kann auf verschiedene Weisen angestossen werden: durch den <strong>Bundesrat</strong> (häufigster Fall), das <strong>Parlament</strong> (Motion, Postulat), einen <strong>Kanton</strong> (Standesinitiative) oder das <strong>Volk</strong> (Volksinitiative, meist für Verfassungsänderungen). Die Bundesverwaltung erarbeitet daraufhin einen ersten Vorentwurf.</p>
+                    
+                    <div class="quiz-section mt-6 pt-4 border-t border-gray-300">
+                        <p class="font-bold text-gray-700">Übung & Kontrolle:</p>
+                        <p class="mt-1">Wer kann in der Schweiz <strong>KEINEN</strong> direkten Anstoss für ein neues Bundesgesetz geben?</p>
+                        <div class="mt-3 space-y-2">
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q1" value="0" class="mr-2">Eine einzelne Privatperson mit einer Idee.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q1" value="1" class="mr-2">Der Bundesrat.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q1" value="2" class="mr-2">Ein Kanton mittels Standesinitiative.</label>
+                        </div>
+                        <button onclick="checkAnswer(1, 0)" class="check-btn mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900">Antwort prüfen</button>
+                        <p id="feedback-1" class="feedback"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Vernehmlassung -->
+            <div id="step-2" class="timeline-item locked" data-step="2">
+                <div class="timeline-dot text-white">2</div>
+                <h3 class="text-xl font-semibold text-gray-800">Input: Vernehmlassungsverfahren</h3>
+                <div id="details-2" class="details">
+                    <p class="mt-2 text-gray-600">Der Vorentwurf wird zur Stellungnahme an Kantone, Parteien und Verbände geschickt. Dieses <strong>Vernehmlassungsverfahren</strong> ist zentral. Ziel ist es, die Meinungen wichtiger Akteure frühzeitig einzuholen, die Akzeptanz des Gesetzes zu prüfen und es "referendumssicher" zu machen, d.h. eine spätere Ablehnung durch das Volk zu vermeiden.</p>
+                    <div class="quiz-section mt-6 pt-4 border-t border-gray-300">
+                        <p class="font-bold text-gray-700">Übung & Kontrolle:</p>
+                        <p class="mt-1">Was ist das Hauptziel der Vernehmlassung?</p>
+                        <div class="mt-3 space-y-2">
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q2" value="0" class="mr-2">Das Gesetz möglichst schnell zu beschliessen.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q2" value="1" class="mr-2">Die Akzeptanz zu prüfen und das Gesetz "referendumssicher" zu machen.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q2" value="2" class="mr-2">Ausschliesslich die Medien über das Vorhaben zu informieren.</label>
+                        </div>
+                        <button onclick="checkAnswer(2, 1)" class="check-btn mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900">Antwort prüfen</button>
+                        <p id="feedback-2" class="feedback"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Botschaft -->
+            <div id="step-3" class="timeline-item locked" data-step="3">
+                <div class="timeline-dot text-white">3</div>
+                <h3 class="text-xl font-semibold text-gray-800">Input: Botschaft an das Parlament</h3>
+                <div id="details-3" class="details">
+                    <p class="mt-2 text-gray-600">Nach Auswertung der Vernehmlassung überarbeitet der Bundesrat den Entwurf und verabschiedet ihn zusammen mit einer <strong>"Botschaft"</strong>. Die Botschaft ist ein ausführlicher Bericht, der dem Parlament die Hintergründe, Ziele und den genauen Inhalt des Gesetzesentwurfs erläutert und die Entscheide begründet.</p>
+                    <div class="quiz-section mt-6 pt-4 border-t border-gray-300">
+                        <p class="font-bold text-gray-700">Übung & Kontrolle:</p>
+                        <p class="mt-1">Was ist die "Botschaft" des Bundesrates?</p>
+                        <div class="mt-3 space-y-2">
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q3" value="0" class="mr-2">Eine kurze Pressemitteilung für die Öffentlichkeit.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q3" value="1" class="mr-2">Der finale, unveränderbare Gesetzestext.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q3" value="2" class="mr-2">Eine detaillierte Erläuterung des Gesetzes für das Parlament.</label>
+                        </div>
+                        <button onclick="checkAnswer(3, 2)" class="check-btn mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900">Antwort prüfen</button>
+                        <p id="feedback-3" class="feedback"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Parlament -->
+            <div id="step-4" class="timeline-item locked" data-step="4">
+                <div class="timeline-dot text-white">4</div>
+                <h3 class="text-xl font-semibold text-gray-800">Input: Beratung in den Räten</h3>
+                <div id="details-4" class="details">
+                    <p class="mt-2 text-gray-600">Das Gesetz wird in beiden Parlamentskammern – <strong>Nationalrat</strong> und <strong>Ständerat</strong> – beraten. Beide Räte sind gleichberechtigt und müssen dem Gesetz im exakt gleichen Wortlaut zustimmen. Weichen die Beschlüsse voneinander ab, kommt es zur <strong>Differenzbereinigung</strong>, bei der ein Kompromiss gesucht wird.</p>
+                    <div class="quiz-section mt-6 pt-4 border-t border-gray-300">
+                        <p class="font-bold text-gray-700">Übung & Kontrolle:</p>
+                        <p class="mt-1">Welche Bedingung muss für die Annahme eines Gesetzes im Parlament erfüllt sein?</p>
+                        <div class="mt-3 space-y-2">
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q4" value="0" class="mr-2">Nur der Nationalrat als grosse Kammer muss zustimmen.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q4" value="1" class="mr-2">Der Ständerat kann den Nationalrat bei Uneinigkeit überstimmen.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q4" value="2" class="mr-2">Beide Räte müssen dem exakt gleichen Text zustimmen.</label>
+                        </div>
+                        <button onclick="checkAnswer(4, 2)" class="check-btn mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900">Antwort prüfen</button>
+                        <p id="feedback-4" class="feedback"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Referendum -->
+            <div id="step-5" class="timeline-item locked" data-step="5">
+                <div class="timeline-dot text-white">5</div>
+                <h3 class="text-xl font-semibold text-gray-800">Input: Referendumsfrist</h3>
+                <div id="details-5" class="details">
+                    <p class="mt-2 text-gray-600">Nach der Schlussabstimmung im Parlament wird das Gesetz veröffentlicht und es beginnt die 100-tägige <strong>Referendumsfrist</strong>. Werden in dieser Zeit <strong>50'000 gültige Unterschriften</strong> gesammelt, kommt es zu einer Volksabstimmung (fakultatives Referendum). Das Volk hat somit das letzte Wort.</p>
+                    <div class="quiz-section mt-6 pt-4 border-t border-gray-300">
+                        <p class="font-bold text-gray-700">Übung & Kontrolle:</p>
+                        <p class="mt-1">Wie viele Unterschriften sind für ein fakultatives Referendum nötig?</p>
+                        <div class="mt-3 space-y-2">
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q5" value="0" class="mr-2">10'000</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q5" value="1" class="mr-2">50'000</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q5" value="2" class="mr-2">100'000</label>
+                        </div>
+                        <button onclick="checkAnswer(5, 1)" class="check-btn mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900">Antwort prüfen</button>
+                        <p id="feedback-5" class="feedback"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6: Inkrafttreten -->
+            <div id="step-6" class="timeline-item locked" data-step="6">
+                <div class="timeline-dot text-white">6</div>
+                <h3 class="text-xl font-semibold text-gray-800">Abschluss: Inkrafttreten</h3>
+                <div id="details-6" class="details">
+                    <div class="p-4 bg-emerald-100 text-emerald-800 rounded-lg">
+                        <h4 class="font-bold">Gratulation!</h4>
+                        <p class="mt-2">Sie haben den Lernpfad abgeschlossen. Das Gesetz tritt nun in Kraft, weil entweder die Referendumsfrist ungenutzt abgelaufen ist oder das Volk in einer Abstimmung zugestimmt hat. Der Bundesrat legt das Datum des Inkrafttretens fest.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openDetails(step) {
+            const details = document.getElementById(`details-${step}`);
+            const item = document.getElementById(`step-${step}`);
+            if (details && !details.classList.contains('open')) {
+                details.classList.add('open');
+                item.classList.add('active');
+            }
+        }
+
+        function checkAnswer(step, correctValue) {
+            const radios = document.getElementsByName(`q${step}`);
+            const feedback = document.getElementById(`feedback-${step}`);
+            let selectedValue = -1;
+
+            for (const radio of radios) {
+                if (radio.checked) {
+                    selectedValue = parseInt(radio.value);
+                    break;
+                }
+            }
+
+            if (selectedValue === -1) {
+                alert('Bitte wählen Sie eine Antwort aus.');
+                return;
+            }
+
+            feedback.style.display = 'block';
+            if (selectedValue === correctValue) {
+                feedback.textContent = 'Richtig! Der nächste Schritt wurde freigeschaltet.';
+                feedback.className = 'feedback correct';
+                document.querySelector(`#step-${step} button`).disabled = true;
+                document.querySelector(`#step-${step}`).classList.add('completed');
+                document.querySelector(`#step-${step}`).classList.remove('active');
+                
+                unlockNextStep(step + 1);
+            } else {
+                feedback.textContent = 'Leider nicht korrekt. Versuchen Sie es noch einmal.';
+                feedback.className = 'feedback incorrect';
+            }
+        }
+
+        function unlockNextStep(step) {
+            const nextItem = document.getElementById(`step-${step}`);
+            if (nextItem) {
+                nextItem.classList.remove('locked');
+                nextItem.classList.add('unlocked');
+                setTimeout(() => {
+                    openDetails(step);
+                    nextItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 500);
+            }
+        }
+
+        // Initialize the learning path
+        document.addEventListener('DOMContentLoaded', () => {
+            openDetails(1);
+        });
+    </script>
+
+</body>
+</html>
