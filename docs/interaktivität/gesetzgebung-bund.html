@@ -1,1 +1,276 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gesetzgebungsverfahren in der Schweiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .card.dragging {
+            opacity: 0.5;
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .dropzone {
+            background-color: #e2e8f0;
+            border-radius: 0.75rem;
+            border: 2px dashed #94a3b8;
+            transition: background-color 0.2s;
+        }
+        .dropzone.hovered {
+            background-color: #cbd5e1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <h1 class="text-3xl md:text-4xl font-bold text-center mb-2 text-gray-900">
+            Schweizer Gesetzgebung: Bring die Schritte in die richtige Reihenfolge
+        </h1>
+        <p class="text-center text-lg mb-6 text-gray-600">
+            Ziehe die Karten mit den Schritten per Drag-and-Drop auf die linke Seite und ordne sie von oben nach unten.
+        </p>
+
+        <div id="game-container" class="flex flex-col lg:flex-row gap-6">
+
+            <!-- Drop Zone Container -->
+            <div id="drop-container" class="flex-1 flex flex-col gap-4 p-4 bg-gray-200 rounded-xl shadow-inner">
+                <p class="text-center font-semibold text-gray-700">Richtige Reihenfolge</p>
+                <!-- Dynamische Drop-Zonen werden hier eingefügt -->
+            </div>
+
+            <!-- Draggable Cards Container -->
+            <div id="drag-container" class="flex-1 flex flex-col gap-4 p-4 bg-gray-200 rounded-xl shadow-inner">
+                <p class="text-center font-semibold text-gray-700">Ziehe die Schritte hierher</p>
+                <!-- Dynamische Karten werden hier eingefügt -->
+            </div>
+
+        </div>
+
+        <div class="mt-8 flex justify-center space-x-4">
+            <button id="check-button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-colors transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                Prüfen
+            </button>
+            <button id="reset-button" class="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-colors transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-300 hidden">
+                Neu starten
+            </button>
+        </div>
+
+        <!-- Feedback Section -->
+        <div id="feedback-container" class="mt-8 p-6 bg-white rounded-xl shadow-xl hidden">
+            <h2 id="feedback-title" class="text-2xl font-bold mb-3"></h2>
+            <p id="feedback-text" class="text-gray-700"></p>
+        </div>
+    </div>
+
+    <script>
+        // Array mit den Schritten in der korrekten Reihenfolge
+        const correctSteps = [
+            {
+                id: 'initiative',
+                title: '1. Anstoss',
+                description: 'Ein neues Gesetz wird initiiert, z.B. durch eine Motion, eine parlamentarische Initiative oder eine Volksinitiative.'
+            },
+            {
+                id: 'first-chamber',
+                title: '2. Beratung im Erstrat',
+                description: 'Der Entwurf wird in einer der beiden Kammern (Nationalrat oder Ständerat) beraten und ggf. überarbeitet.'
+            },
+            {
+                id: 'second-chamber',
+                title: '3. Beratung im Zweitrat',
+                description: 'Die andere Kammer berät nun ebenfalls über den Gesetzesentwurf.'
+            },
+            {
+                id: 'conflict-resolution',
+                title: '4. Differenzbereinigung',
+                description: 'Gibt es Meinungsverschiedenheiten zwischen den Kammern, wird der Entwurf solange hin- und hergeschoben, bis eine Einigung erzielt wird.'
+            },
+            {
+                id: 'final-vote',
+                title: '5. Schlussabstimmung',
+                description: 'Beide Kammern stimmen über den endgültigen, bereinigten Gesetzesentwurf ab.'
+            },
+            {
+                id: 'referendum',
+                title: '6. Referendum',
+                description: 'Innerhalb von 100 Tagen nach der Publikation können 50\'000 Bürgerinnen und Bürger ein Referendum verlangen. Findet kein Referendum statt, tritt das Gesetz in Kraft.'
+            },
+            {
+                id: 'enforcement',
+                title: '7. Inkrafttreten',
+                description: 'Das Gesetz tritt in Kraft und ist verbindlich.'
+            }
+        ];
+
+        // Referenzen auf die HTML-Elemente
+        const dragContainer = document.getElementById('drag-container');
+        const dropContainer = document.getElementById('drop-container');
+        const checkButton = document.getElementById('check-button');
+        const resetButton = document.getElementById('reset-button');
+        const feedbackContainer = document.getElementById('feedback-container');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackText = document.getElementById('feedback-text');
+
+        let currentDraggingCard = null;
+
+        // Funktion zum Mischen eines Arrays (Fisher-Yates Algorithmus)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Funktion zum Erstellen der Drop-Zonen
+        function createDropZones() {
+            dropContainer.innerHTML = ''; // Container leeren
+            correctSteps.forEach((step, index) => {
+                const dropzone = document.createElement('div');
+                dropzone.className = 'dropzone p-4 flex flex-col items-center justify-center text-center';
+                dropzone.dataset.index = index;
+                dropzone.dataset.id = step.id; // Füge die ID als Datenattribut hinzu
+                dropzone.innerHTML = `<span class="text-sm text-gray-600 mb-1">Position ${index + 1}</span>`;
+                dropContainer.appendChild(dropzone);
+
+                // Event Listener für Drag-and-Drop
+                dropzone.addEventListener('dragover', handleDragOver);
+                dropzone.addEventListener('dragleave', handleDragLeave);
+                dropzone.addEventListener('drop', handleDrop);
+            });
+        }
+
+        // Funktion zum Erstellen der ziehbaren Karten
+        function createDraggableCards() {
+            dragContainer.innerHTML = ''; // Container leeren
+            const shuffledSteps = shuffleArray([...correctSteps]);
+            shuffledSteps.forEach(step => {
+                const card = document.createElement('div');
+                card.className = 'card p-4 rounded-xl shadow-md bg-white border border-gray-200';
+                card.draggable = true;
+                card.dataset.id = step.id;
+                card.innerHTML = `<h3 class="font-semibold text-lg mb-1">${step.title}</h3><p class="text-sm text-gray-500">${step.description}</p>`;
+                dragContainer.appendChild(card);
+
+                // Event Listener für Drag-and-Drop
+                card.addEventListener('dragstart', handleDragStart);
+            });
+        }
+
+        // Drag-and-Drop Handler
+        function handleDragStart(event) {
+            currentDraggingCard = event.target;
+            event.target.classList.add('dragging');
+            event.dataTransfer.setData('text/plain', event.target.dataset.id);
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            const targetDropzone = event.target.closest('.dropzone');
+            if (targetDropzone && !targetDropzone.querySelector('.card')) {
+                targetDropzone.classList.add('hovered');
+            }
+        }
+
+        function handleDragLeave(event) {
+            event.preventDefault();
+            const targetDropzone = event.target.closest('.dropzone');
+            if (targetDropzone) {
+                targetDropzone.classList.remove('hovered');
+            }
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            const targetDropzone = event.target.closest('.dropzone');
+            if (!targetDropzone || targetDropzone.querySelector('.card')) {
+                // Drop auf einer bereits besetzten Zone oder ausserhalb einer Zone
+                if (currentDraggingCard) {
+                    currentDraggingCard.classList.remove('dragging');
+                }
+                currentDraggingCard = null;
+                return;
+            }
+
+            const cardId = event.dataTransfer.getData('text/plain');
+            const card = document.querySelector(`[data-id="${cardId}"]`);
+
+            if (card) {
+                targetDropzone.innerHTML = '';
+                targetDropzone.appendChild(card);
+                targetDropzone.classList.remove('hovered');
+            }
+
+            if (currentDraggingCard) {
+                currentDraggingCard.classList.remove('dragging');
+            }
+            currentDraggingCard = null;
+        }
+
+        // Prüfen-Button Logik
+        checkButton.addEventListener('click', () => {
+            const placedCards = Array.from(dropContainer.querySelectorAll('.card'));
+            const placedIds = placedCards.map(card => card.dataset.id);
+            const correctIds = correctSteps.map(step => step.id);
+
+            let isCorrect = true;
+            for (let i = 0; i < correctIds.length; i++) {
+                if (placedIds[i] !== correctIds[i]) {
+                    isCorrect = false;
+                    break;
+                }
+            }
+
+            feedbackContainer.classList.remove('hidden');
+            if (isCorrect) {
+                feedbackTitle.textContent = 'Richtig!';
+                feedbackTitle.className = 'text-2xl font-bold mb-3 text-green-600';
+                feedbackText.textContent = 'Herzlichen Glückwunsch! Du hast die Schritte des Gesetzgebungsverfahrens korrekt in die richtige Reihenfolge gebracht.';
+                checkButton.classList.add('hidden');
+                resetButton.classList.remove('hidden');
+            } else {
+                feedbackTitle.textContent = 'Leider falsch.';
+                feedbackTitle.className = 'text-2xl font-bold mb-3 text-red-600';
+                feedbackText.innerHTML = 'Die Reihenfolge ist nicht ganz korrekt. Hier ist die richtige Abfolge und eine kurze Erklärung:<br><br>' +
+                    correctSteps.map((step, index) => `<strong>${step.title}:</strong> ${step.description}`).join('<br>');
+                checkButton.classList.add('hidden');
+                resetButton.classList.remove('hidden');
+            }
+        });
+
+        // Neu starten Button Logik
+        resetButton.addEventListener('click', () => {
+            feedbackContainer.classList.add('hidden');
+            checkButton.classList.remove('hidden');
+            resetButton.classList.add('hidden');
+            createDropZones();
+            createDraggableCards();
+        });
+
+        // Initiales Setup
+        window.onload = function() {
+            createDropZones();
+            createDraggableCards();
+        };
+
+    </script>
+</body>
+</html>
 
