@@ -3,274 +3,266 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gesetzgebungsverfahren in der Schweiz</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Interaktiver Lernpfad: Gesetzgebung in der Schweiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
+            scroll-behavior: smooth;
         }
-        .card {
-            background-color: #ffffff;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            cursor: grab;
-            transition: transform 0.2s, box-shadow 0.2s;
+        .timeline-item {
+            position: relative;
+            padding-bottom: 2.5rem;
+            padding-left: 2.5rem;
+            border-left: 2px solid #e5e7eb;
+            transition: opacity 0.5s ease;
         }
-        .card:active {
-            cursor: grabbing;
+        .timeline-item:last-child {
+            border-left: 2px solid transparent;
         }
-        .card.dragging {
+        .timeline-dot {
+            position: absolute;
+            left: -0.7rem;
+            top: 0;
+            height: 1.25rem;
+            width: 1.25rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            background-color: #d1d5db; /* Default locked color */
+        }
+        .timeline-item.unlocked .timeline-dot {
+            background-color: #D9182B; /* Swiss Red */
+        }
+        .timeline-item.completed .timeline-dot {
+            background-color: #10b981; /* Emerald */
+        }
+        .timeline-item.active .timeline-dot {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 4px rgba(217, 24, 43, 0.3);
+        }
+        .timeline-item.locked {
             opacity: 0.5;
-            transform: scale(1.05);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            pointer-events: none;
         }
-        .dropzone {
-            background-color: #e2e8f0;
-            border-radius: 0.75rem;
-            border: 2px dashed #94a3b8;
+        .details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.7s ease-in-out;
+        }
+        .details.open {
+            max-height: 800px; /* Increased for quiz */
+        }
+        .quiz-option:hover {
+            background-color: #f3f4f6;
+        }
+        .feedback {
+            display: none;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+        }
+        .feedback.correct {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .check-btn {
             transition: background-color 0.2s;
-        }
-        .dropzone.hovered {
-            background-color: #cbd5e1;
         }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
-        <h1 class="text-3xl md:text-4xl font-bold text-center mb-2 text-gray-900">
-            Schweizer Gesetzgebung: Bring die Schritte in die richtige Reihenfolge
-        </h1>
-        <p class="text-center text-lg mb-6 text-gray-600">
-            Ziehe die Karten mit den Schritten per Drag-and-Drop auf die linke Seite und ordne sie von oben nach unten.
-        </p>
+    <div class="container mx-auto px-4 py-8 md:py-12">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Lernpfad: Der Weg eines Bundesgesetzes</h1>
+            <p class="mt-2 text-lg text-gray-600">Absolvieren Sie die Schritte, um den Gesetzgebungsprozess in der Schweiz zu verstehen.</p>
+        </header>
 
-        <div id="game-container" class="flex flex-col lg:flex-row gap-6">
-
-            <!-- Drop Zone Container -->
-            <div id="drop-container" class="flex-1 flex flex-col gap-4 p-4 bg-gray-200 rounded-xl shadow-inner">
-                <p class="text-center font-semibold text-gray-700">Richtige Reihenfolge</p>
-                <!-- Dynamische Drop-Zonen werden hier eingefügt -->
+        <!-- Timeline -->
+        <div id="timeline" class="max-w-3xl mx-auto">
+            <!-- Step 1: Anstoss & Vorentwurf -->
+            <div id="step-1" class="timeline-item unlocked" data-step="1">
+                <div class="timeline-dot text-white">1</div>
+                <h3 class="text-xl font-semibold text-gray-800">Input: Anstoss und Vorentwurf</h3>
+                <div id="details-1" class="details">
+                    <p class="mt-2 text-gray-600">Ein Gesetzgebungsverfahren kann auf verschiedene Weisen angestossen werden: durch den <strong>Bundesrat</strong> (häufigster Fall), das <strong>Parlament</strong> (Motion, Postulat), einen <strong>Kanton</strong> (Standesinitiative) oder das <strong>Volk</strong> (Volksinitiative, meist für Verfassungsänderungen). Die Bundesverwaltung erarbeitet daraufhin einen ersten Vorentwurf.</p>
+                    
+                    <div class="quiz-section mt-6 pt-4 border-t border-gray-300">
+                        <p class="font-bold text-gray-700">Übung & Kontrolle:</p>
+                        <p class="mt-1">Wer kann in der Schweiz <strong>KEINEN</strong> direkten Anstoss für ein neues Bundesgesetz geben?</p>
+                        <div class="mt-3 space-y-2">
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q1" value="0" class="mr-2">Eine einzelne Privatperson mit einer Idee.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q1" value="1" class="mr-2">Der Bundesrat.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q1" value="2" class="mr-2">Ein Kanton mittels Standesinitiative.</label>
+                        </div>
+                        <button onclick="checkAnswer(1, 0)" class="check-btn mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900">Antwort prüfen</button>
+                        <p id="feedback-1" class="feedback"></p>
+                    </div>
+                </div>
             </div>
 
-            <!-- Draggable Cards Container -->
-            <div id="drag-container" class="flex-1 flex flex-col gap-4 p-4 bg-gray-200 rounded-xl shadow-inner">
-                <p class="text-center font-semibold text-gray-700">Ziehe die Schritte hierher</p>
-                <!-- Dynamische Karten werden hier eingefügt -->
+            <!-- Step 2: Vernehmlassung -->
+            <div id="step-2" class="timeline-item locked" data-step="2">
+                <div class="timeline-dot text-white">2</div>
+                <h3 class="text-xl font-semibold text-gray-800">Input: Vernehmlassungsverfahren</h3>
+                <div id="details-2" class="details">
+                    <p class="mt-2 text-gray-600">Der Vorentwurf wird zur Stellungnahme an Kantone, Parteien und Verbände geschickt. Dieses <strong>Vernehmlassungsverfahren</strong> ist zentral. Ziel ist es, die Meinungen wichtiger Akteure frühzeitig einzuholen, die Akzeptanz des Gesetzes zu prüfen und es "referendumssicher" zu machen, d.h. eine spätere Ablehnung durch das Volk zu vermeiden.</p>
+                    <div class="quiz-section mt-6 pt-4 border-t border-gray-300">
+                        <p class="font-bold text-gray-700">Übung & Kontrolle:</p>
+                        <p class="mt-1">Was ist das Hauptziel der Vernehmlassung?</p>
+                        <div class="mt-3 space-y-2">
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q2" value="0" class="mr-2">Das Gesetz möglichst schnell zu beschliessen.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q2" value="1" class="mr-2">Die Akzeptanz zu prüfen und das Gesetz "referendumssicher" zu machen.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q2" value="2" class="mr-2">Ausschliesslich die Medien über das Vorhaben zu informieren.</label>
+                        </div>
+                        <button onclick="checkAnswer(2, 1)" class="check-btn mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900">Antwort prüfen</button>
+                        <p id="feedback-2" class="feedback"></p>
+                    </div>
+                </div>
             </div>
 
-        </div>
+            <!-- Step 3: Botschaft -->
+            <div id="step-3" class="timeline-item locked" data-step="3">
+                <div class="timeline-dot text-white">3</div>
+                <h3 class="text-xl font-semibold text-gray-800">Input: Botschaft an das Parlament</h3>
+                <div id="details-3" class="details">
+                    <p class="mt-2 text-gray-600">Nach Auswertung der Vernehmlassung überarbeitet der Bundesrat den Entwurf und verabschiedet ihn zusammen mit einer <strong>"Botschaft"</strong>. Die Botschaft ist ein ausführlicher Bericht, der dem Parlament die Hintergründe, Ziele und den genauen Inhalt des Gesetzesentwurfs erläutert und die Entscheide begründet.</p>
+                    <div class="quiz-section mt-6 pt-4 border-t border-gray-300">
+                        <p class="font-bold text-gray-700">Übung & Kontrolle:</p>
+                        <p class="mt-1">Was ist die "Botschaft" des Bundesrates?</p>
+                        <div class="mt-3 space-y-2">
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q3" value="0" class="mr-2">Eine kurze Pressemitteilung für die Öffentlichkeit.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q3" value="1" class="mr-2">Der finale, unveränderbare Gesetzestext.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q3" value="2" class="mr-2">Eine detaillierte Erläuterung des Gesetzes für das Parlament.</label>
+                        </div>
+                        <button onclick="checkAnswer(3, 2)" class="check-btn mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900">Antwort prüfen</button>
+                        <p id="feedback-3" class="feedback"></p>
+                    </div>
+                </div>
+            </div>
 
-        <div class="mt-8 flex justify-center space-x-4">
-            <button id="check-button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-colors transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
-                Prüfen
-            </button>
-            <button id="reset-button" class="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-colors transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-300 hidden">
-                Neu starten
-            </button>
-        </div>
+            <!-- Step 4: Parlament -->
+            <div id="step-4" class="timeline-item locked" data-step="4">
+                <div class="timeline-dot text-white">4</div>
+                <h3 class="text-xl font-semibold text-gray-800">Input: Beratung in den Räten</h3>
+                <div id="details-4" class="details">
+                    <p class="mt-2 text-gray-600">Das Gesetz wird in beiden Parlamentskammern – <strong>Nationalrat</strong> und <strong>Ständerat</strong> – beraten. Beide Räte sind gleichberechtigt und müssen dem Gesetz im exakt gleichen Wortlaut zustimmen. Weichen die Beschlüsse voneinander ab, kommt es zur <strong>Differenzbereinigung</strong>, bei der ein Kompromiss gesucht wird.</p>
+                    <div class="quiz-section mt-6 pt-4 border-t border-gray-300">
+                        <p class="font-bold text-gray-700">Übung & Kontrolle:</p>
+                        <p class="mt-1">Welche Bedingung muss für die Annahme eines Gesetzes im Parlament erfüllt sein?</p>
+                        <div class="mt-3 space-y-2">
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q4" value="0" class="mr-2">Nur der Nationalrat als grosse Kammer muss zustimmen.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q4" value="1" class="mr-2">Der Ständerat kann den Nationalrat bei Uneinigkeit überstimmen.</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q4" value="2" class="mr-2">Beide Räte müssen dem exakt gleichen Text zustimmen.</label>
+                        </div>
+                        <button onclick="checkAnswer(4, 2)" class="check-btn mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900">Antwort prüfen</button>
+                        <p id="feedback-4" class="feedback"></p>
+                    </div>
+                </div>
+            </div>
 
-        <!-- Feedback Section -->
-        <div id="feedback-container" class="mt-8 p-6 bg-white rounded-xl shadow-xl hidden">
-            <h2 id="feedback-title" class="text-2xl font-bold mb-3"></h2>
-            <p id="feedback-text" class="text-gray-700"></p>
+            <!-- Step 5: Referendum -->
+            <div id="step-5" class="timeline-item locked" data-step="5">
+                <div class="timeline-dot text-white">5</div>
+                <h3 class="text-xl font-semibold text-gray-800">Input: Referendumsfrist</h3>
+                <div id="details-5" class="details">
+                    <p class="mt-2 text-gray-600">Nach der Schlussabstimmung im Parlament wird das Gesetz veröffentlicht und es beginnt die 100-tägige <strong>Referendumsfrist</strong>. Werden in dieser Zeit <strong>50'000 gültige Unterschriften</strong> gesammelt, kommt es zu einer Volksabstimmung (fakultatives Referendum). Das Volk hat somit das letzte Wort.</p>
+                    <div class="quiz-section mt-6 pt-4 border-t border-gray-300">
+                        <p class="font-bold text-gray-700">Übung & Kontrolle:</p>
+                        <p class="mt-1">Wie viele Unterschriften sind für ein fakultatives Referendum nötig?</p>
+                        <div class="mt-3 space-y-2">
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q5" value="0" class="mr-2">10'000</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q5" value="1" class="mr-2">50'000</label>
+                            <label class="quiz-option block p-3 rounded-lg border border-gray-200 cursor-pointer"><input type="radio" name="q5" value="2" class="mr-2">100'000</label>
+                        </div>
+                        <button onclick="checkAnswer(5, 1)" class="check-btn mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900">Antwort prüfen</button>
+                        <p id="feedback-5" class="feedback"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6: Inkrafttreten -->
+            <div id="step-6" class="timeline-item locked" data-step="6">
+                <div class="timeline-dot text-white">6</div>
+                <h3 class="text-xl font-semibold text-gray-800">Abschluss: Inkrafttreten</h3>
+                <div id="details-6" class="details">
+                    <div class="p-4 bg-emerald-100 text-emerald-800 rounded-lg">
+                        <h4 class="font-bold">Gratulation!</h4>
+                        <p class="mt-2">Sie haben den Lernpfad abgeschlossen. Das Gesetz tritt nun in Kraft, weil entweder die Referendumsfrist ungenutzt abgelaufen ist oder das Volk in einer Abstimmung zugestimmt hat. Der Bundesrat legt das Datum des Inkrafttretens fest.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Array mit den Schritten in der korrekten Reihenfolge
-        const correctSteps = [
-            {
-                id: 'initiative',
-                title: '1. Anstoss',
-                description: 'Ein neues Gesetz wird initiiert, z.B. durch eine Motion, eine parlamentarische Initiative oder eine Volksinitiative.'
-            },
-            {
-                id: 'first-chamber',
-                title: '2. Beratung im Erstrat',
-                description: 'Der Entwurf wird in einer der beiden Kammern (Nationalrat oder Ständerat) beraten und ggf. überarbeitet.'
-            },
-            {
-                id: 'second-chamber',
-                title: '3. Beratung im Zweitrat',
-                description: 'Die andere Kammer berät nun ebenfalls über den Gesetzesentwurf.'
-            },
-            {
-                id: 'conflict-resolution',
-                title: '4. Differenzbereinigung',
-                description: 'Gibt es Meinungsverschiedenheiten zwischen den Kammern, wird der Entwurf solange hin- und hergeschoben, bis eine Einigung erzielt wird.'
-            },
-            {
-                id: 'final-vote',
-                title: '5. Schlussabstimmung',
-                description: 'Beide Kammern stimmen über den endgültigen, bereinigten Gesetzesentwurf ab.'
-            },
-            {
-                id: 'referendum',
-                title: '6. Referendum',
-                description: 'Innerhalb von 100 Tagen nach der Publikation können 50\'000 Bürgerinnen und Bürger ein Referendum verlangen. Findet kein Referendum statt, tritt das Gesetz in Kraft.'
-            },
-            {
-                id: 'enforcement',
-                title: '7. Inkrafttreten',
-                description: 'Das Gesetz tritt in Kraft und ist verbindlich.'
-            }
-        ];
-
-        // Referenzen auf die HTML-Elemente
-        const dragContainer = document.getElementById('drag-container');
-        const dropContainer = document.getElementById('drop-container');
-        const checkButton = document.getElementById('check-button');
-        const resetButton = document.getElementById('reset-button');
-        const feedbackContainer = document.getElementById('feedback-container');
-        const feedbackTitle = document.getElementById('feedback-title');
-        const feedbackText = document.getElementById('feedback-text');
-
-        let currentDraggingCard = null;
-
-        // Funktion zum Mischen eines Arrays (Fisher-Yates Algorithmus)
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        // Funktion zum Erstellen der Drop-Zonen
-        function createDropZones() {
-            dropContainer.innerHTML = ''; // Container leeren
-            correctSteps.forEach((step, index) => {
-                const dropzone = document.createElement('div');
-                dropzone.className = 'dropzone p-4 flex flex-col items-center justify-center text-center';
-                dropzone.dataset.index = index;
-                dropzone.dataset.id = step.id; // Füge die ID als Datenattribut hinzu
-                dropzone.innerHTML = `<span class="text-sm text-gray-600 mb-1">Position ${index + 1}</span>`;
-                dropContainer.appendChild(dropzone);
-
-                // Event Listener für Drag-and-Drop
-                dropzone.addEventListener('dragover', handleDragOver);
-                dropzone.addEventListener('dragleave', handleDragLeave);
-                dropzone.addEventListener('drop', handleDrop);
-            });
-        }
-
-        // Funktion zum Erstellen der ziehbaren Karten
-        function createDraggableCards() {
-            dragContainer.innerHTML = ''; // Container leeren
-            const shuffledSteps = shuffleArray([...correctSteps]);
-            shuffledSteps.forEach(step => {
-                const card = document.createElement('div');
-                card.className = 'card p-4 rounded-xl shadow-md bg-white border border-gray-200';
-                card.draggable = true;
-                card.dataset.id = step.id;
-                card.innerHTML = `<h3 class="font-semibold text-lg mb-1">${step.title}</h3><p class="text-sm text-gray-500">${step.description}</p>`;
-                dragContainer.appendChild(card);
-
-                // Event Listener für Drag-and-Drop
-                card.addEventListener('dragstart', handleDragStart);
-            });
-        }
-
-        // Drag-and-Drop Handler
-        function handleDragStart(event) {
-            currentDraggingCard = event.target;
-            event.target.classList.add('dragging');
-            event.dataTransfer.setData('text/plain', event.target.dataset.id);
-        }
-
-        function handleDragOver(event) {
-            event.preventDefault();
-            const targetDropzone = event.target.closest('.dropzone');
-            if (targetDropzone && !targetDropzone.querySelector('.card')) {
-                targetDropzone.classList.add('hovered');
+        function openDetails(step) {
+            const details = document.getElementById(`details-${step}`);
+            const item = document.getElementById(`step-${step}`);
+            if (details && !details.classList.contains('open')) {
+                details.classList.add('open');
+                item.classList.add('active');
             }
         }
 
-        function handleDragLeave(event) {
-            event.preventDefault();
-            const targetDropzone = event.target.closest('.dropzone');
-            if (targetDropzone) {
-                targetDropzone.classList.remove('hovered');
-            }
-        }
+        function checkAnswer(step, correctValue) {
+            const radios = document.getElementsByName(`q${step}`);
+            const feedback = document.getElementById(`feedback-${step}`);
+            let selectedValue = -1;
 
-        function handleDrop(event) {
-            event.preventDefault();
-            const targetDropzone = event.target.closest('.dropzone');
-            if (!targetDropzone || targetDropzone.querySelector('.card')) {
-                // Drop auf einer bereits besetzten Zone oder ausserhalb einer Zone
-                if (currentDraggingCard) {
-                    currentDraggingCard.classList.remove('dragging');
-                }
-                currentDraggingCard = null;
-                return;
-            }
-
-            const cardId = event.dataTransfer.getData('text/plain');
-            const card = document.querySelector(`[data-id="${cardId}"]`);
-
-            if (card) {
-                targetDropzone.innerHTML = '';
-                targetDropzone.appendChild(card);
-                targetDropzone.classList.remove('hovered');
-            }
-
-            if (currentDraggingCard) {
-                currentDraggingCard.classList.remove('dragging');
-            }
-            currentDraggingCard = null;
-        }
-
-        // Prüfen-Button Logik
-        checkButton.addEventListener('click', () => {
-            const placedCards = Array.from(dropContainer.querySelectorAll('.card'));
-            const placedIds = placedCards.map(card => card.dataset.id);
-            const correctIds = correctSteps.map(step => step.id);
-
-            let isCorrect = true;
-            for (let i = 0; i < correctIds.length; i++) {
-                if (placedIds[i] !== correctIds[i]) {
-                    isCorrect = false;
+            for (const radio of radios) {
+                if (radio.checked) {
+                    selectedValue = parseInt(radio.value);
                     break;
                 }
             }
 
-            feedbackContainer.classList.remove('hidden');
-            if (isCorrect) {
-                feedbackTitle.textContent = 'Richtig!';
-                feedbackTitle.className = 'text-2xl font-bold mb-3 text-green-600';
-                feedbackText.textContent = 'Herzlichen Glückwunsch! Du hast die Schritte des Gesetzgebungsverfahrens korrekt in die richtige Reihenfolge gebracht.';
-                checkButton.classList.add('hidden');
-                resetButton.classList.remove('hidden');
-            } else {
-                feedbackTitle.textContent = 'Leider falsch.';
-                feedbackTitle.className = 'text-2xl font-bold mb-3 text-red-600';
-                feedbackText.innerHTML = 'Die Reihenfolge ist nicht ganz korrekt. Hier ist die richtige Abfolge und eine kurze Erklärung:<br><br>' +
-                    correctSteps.map((step, index) => `<strong>${step.title}:</strong> ${step.description}`).join('<br>');
-                checkButton.classList.add('hidden');
-                resetButton.classList.remove('hidden');
+            if (selectedValue === -1) {
+                alert('Bitte wählen Sie eine Antwort aus.');
+                return;
             }
+
+            feedback.style.display = 'block';
+            if (selectedValue === correctValue) {
+                feedback.textContent = 'Richtig! Der nächste Schritt wurde freigeschaltet.';
+                feedback.className = 'feedback correct';
+                document.querySelector(`#step-${step} button`).disabled = true;
+                document.querySelector(`#step-${step}`).classList.add('completed');
+                document.querySelector(`#step-${step}`).classList.remove('active');
+                
+                unlockNextStep(step + 1);
+            } else {
+                feedback.textContent = 'Leider nicht korrekt. Versuchen Sie es noch einmal.';
+                feedback.className = 'feedback incorrect';
+            }
+        }
+
+        function unlockNextStep(step) {
+            const nextItem = document.getElementById(`step-${step}`);
+            if (nextItem) {
+                nextItem.classList.remove('locked');
+                nextItem.classList.add('unlocked');
+                setTimeout(() => {
+                    openDetails(step);
+                    nextItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 500);
+            }
+        }
+
+        // Initialize the learning path
+        document.addEventListener('DOMContentLoaded', () => {
+            openDetails(1);
         });
-
-        // Neu starten Button Logik
-        resetButton.addEventListener('click', () => {
-            feedbackContainer.classList.add('hidden');
-            checkButton.classList.remove('hidden');
-            resetButton.classList.add('hidden');
-            createDropZones();
-            createDraggableCards();
-        });
-
-        // Initiales Setup
-        window.onload = function() {
-            createDropZones();
-            createDraggableCards();
-        };
-
     </script>
+
 </body>
 </html>
-
